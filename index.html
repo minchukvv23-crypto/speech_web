@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speech Core</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101418;
+      color: #e8edf2;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: #171d23;
+      border: 1px solid #26303a;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+    }
+
+    .sub {
+      color: #9fb0c0;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      margin: 22px 0 10px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #dce6ef;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="file"] {
+      background: #0f1317;
+      color: #dbe5ee;
+      border: 1px solid #33414f;
+      border-radius: 10px;
+      padding: 10px;
+      flex: 1;
+      min-width: 240px;
+      font-size: 14px;
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .mode-card {
+      background: #11171c;
+      border: 1px solid #27333e;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .mode-card:hover {
+      border-color: #4c8bf5;
+      transform: translateY(-1px);
+    }
+
+    .mode-card input {
+      margin-right: 8px;
+    }
+
+    .mode-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #edf4fb;
+    }
+
+    .mode-desc {
+      color: #9eb0bf;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      background: #4c8bf5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #2a3540;
+    }
+
+    .btn-danger {
+      background: #c74646;
+    }
+
+    .status-box {
+      margin-top: 22px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #11171c;
+      border: 1px solid #27333e;
+    }
+
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+      color: #9eb0bf;
+      text-align: center;
+      min-height: 24px;
+    }
+
+    .muted {
+      color: #9eb0bf;
+    }
+
+    .bar-wrap {
+      width: 100%;
+      height: 18px;
+      background: #0d1115;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #2d3944;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3e7bfa, #5ec5ff);
+      transition: width 0.5s ease;
+    }
+
+    .result {
+      margin-top: 22px;
+      white-space: pre-wrap;
+      background: #0e1318;
+      border: 1px solid #26313b;
+      border-radius: 12px;
+      padding: 16px;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .error {
+      margin-top: 18px;
+      color: #ff9696;
+      background: #2a1414;
+      border: 1px solid #5b2a2a;
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .success {
+      margin-top: 18px;
+      color: #9ef0b2;
+      background: #142219;
+      border: 1px solid #2d5d39;
+      padding: 12px;
+      border-radius: 10px;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 640px) {
+      .wrap {
+        margin: 20px auto;
+        padding: 12px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Транскрибация + диаризация</h1>
+      <div class="sub">Локальная веб-оболочка для speech core</div>
+
+      <div class="section-title">Аудиофайл</div>
+      <div class="row">
+        <input id="fileInput" type="file" accept=".mp3,.wav,.m4a,.flac,.ogg" />
+      </div>
+
+      <div class="section-title">Режим улучшения аудио</div>
+      <div class="modes">
+        <label class="mode-card">
+          <div class="mode-title">
+            <input type="radio" name="enhanceMode" value="none" checked />
+            Без улучшения
+          </div>
+          <div class="mode-desc">
+            Для уже чистых записей, хороших микрофонов и случаев, когда не хочется лишней обработки перед распознаванием.
+          </div>
+        </label>
+
+        <label class="mode-card">
+          <div class="mode-title">
+            <input type="radio" name="enhanceMode" value="medium" />
+            Среднее улучшение
+          </div>
+          <div class="mode-desc">
+            Для обычных разговоров, голосовых сообщений, звонков и умеренного фонового шума. Базовый универсальный режим.
+          </div>
+        </label>
+
+        <label class="mode-card">
+          <div class="mode-title">
+            <input type="radio" name="enhanceMode" value="strong" />
+            Усиленное улучшение
+          </div>
+          <div class="mode-desc">
+            Для сложных записей: улица, шумный фон, слабый голос, телефонный разговор с помехами. Может звучать жестче, но лучше чистит шум.
+          </div>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="startBtn">Запустить</button>
+        <button id="downloadBtn" class="btn-secondary hidden">Скачать .txt</button>
+        <button id="deleteBtn" class="btn-danger hidden">Удалить всё</button>
+      </div>
+
+      <div id="statusBox" class="status-box hidden">
+        <div class="status-line">
+          <div><strong>Этап:</strong> <span id="stageText">—</span></div>
+          <div><strong>Прогресс:</strong> <span id="percentText">0%</span></div>
+        </div>
+
+        <div class="bar-wrap">
+          <div id="bar" class="bar"></div>
+        </div>
+
+        <div class="status-center">
+          <div class="muted">Статус: <span id="statusText">ожидание</span></div>
+        </div>
+      </div>
+
+      <div id="successBox" class="success hidden"></div>
+      <div id="errorBox" class="error hidden"></div>
+      <div id="resultBox" class="result hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const startBtn = document.getElementById("startBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+
+    const statusBox = document.getElementById("statusBox");
+    const successBox = document.getElementById("successBox");
+    const errorBox = document.getElementById("errorBox");
+    const resultBox = document.getElementById("resultBox");
+
+    const stageText = document.getElementById("stageText");
+    const percentText = document.getElementById("percentText");
+    const statusText = document.getElementById("statusText");
+    const bar = document.getElementById("bar");
+
+    let pollTimer = null;
+    let currentJobId = null;
+
+    function getEnhanceMode() {
+      const selected = document.querySelector('input[name="enhanceMode"]:checked');
+      return selected ? selected.value : "none";
+    }
+
+    function resetMessages() {
+      successBox.classList.add("hidden");
+      successBox.textContent = "";
+      errorBox.classList.add("hidden");
+      errorBox.textContent = "";
+    }
+
+    function resetResult() {
+      resultBox.classList.add("hidden");
+      resultBox.textContent = "";
+      downloadBtn.classList.add("hidden");
+      deleteBtn.classList.add("hidden");
+    }
+
+    function renderResult(result) {
+      if (!result || !result.segments) return;
+
+      const lines = result.segments.map(
+        seg => `[${seg.start.toFixed(2)} - ${seg.end.toFixed(2)}] ${seg.speaker}: ${seg.text}`
+      );
+
+      resultBox.textContent = lines.join("\n");
+      resultBox.classList.remove("hidden");
+      downloadBtn.classList.remove("hidden");
+      deleteBtn.classList.remove("hidden");
+    }
+
+    async function pollStatus(jobId) {
+      try {
+        const res = await fetch(`/api/status/${jobId}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Ошибка проверки статуса");
+        }
+
+        statusBox.classList.remove("hidden");
+        stageText.textContent = data.stage || "—";
+        percentText.textContent = `${data.progress || 0}%`;
+        statusText.textContent = data.status || "—";
+        bar.style.width = `${data.progress || 0}%`;
+
+        if (data.status === "done") {
+          clearInterval(pollTimer);
+          startBtn.disabled = false;
+          renderResult(data.result);
+          return;
+        }
+
+        if (data.status === "error") {
+          clearInterval(pollTimer);
+          startBtn.disabled = false;
+          errorBox.textContent = data.error || "Неизвестная ошибка";
+          errorBox.classList.remove("hidden");
+          deleteBtn.classList.remove("hidden");
+          return;
+        }
+      } catch (err) {
+        clearInterval(pollTimer);
+        startBtn.disabled = false;
+        errorBox.textContent = err.message;
+        errorBox.classList.remove("hidden");
+      }
+    }
+
+    startBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        resetMessages();
+        errorBox.textContent = "Сначала выбери аудиофайл.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      resetMessages();
+      resetResult();
+
+      statusBox.classList.remove("hidden");
+      stageText.textContent = "Загрузка файла";
+      percentText.textContent = "0%";
+      statusText.textContent = "queued";
+      bar.style.width = "0%";
+
+      startBtn.disabled = true;
+      currentJobId = null;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("enhance_mode", getEnhanceMode());
+
+      try {
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Ошибка загрузки");
+        }
+
+        currentJobId = data.job_id;
+        pollTimer = setInterval(() => pollStatus(currentJobId), 1200);
+        pollStatus(currentJobId);
+      } catch (err) {
+        startBtn.disabled = false;
+        errorBox.textContent = err.message;
+        errorBox.classList.remove("hidden");
+      }
+    });
+
+    downloadBtn.addEventListener("click", async () => {
+      if (!currentJobId) return;
+
+      resetMessages();
+
+      try {
+        window.location.href = `/api/download/${currentJobId}`;
+
+        downloadBtn.classList.add("hidden");
+        deleteBtn.classList.add("hidden");
+        successBox.textContent = "Файл скачан, все данные удалены.";
+        successBox.classList.remove("hidden");
+
+        currentJobId = null;
+      } catch (err) {
+        errorBox.textContent = "Ошибка скачивания файла.";
+        errorBox.classList.remove("hidden");
+      }
+    });
+
+    deleteBtn.addEventListener("click", async () => {
+      if (!currentJobId) return;
+
+      resetMessages();
+
+      try {
+        const res = await fetch(`/api/delete/${currentJobId}`, {
+          method: "POST"
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Ошибка удаления");
+        }
+
+        if (pollTimer) {
+          clearInterval(pollTimer);
+        }
+
+        currentJobId = null;
+        startBtn.disabled = false;
+        downloadBtn.classList.add("hidden");
+        deleteBtn.classList.add("hidden");
+        statusText.textContent = "deleted";
+        successBox.textContent = data.message || "Все данные удалены";
+        successBox.classList.remove("hidden");
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+services:
+  speech-core:
+    build: .
+    container_name: speech-core
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    ports:
+      - "5000:5000"
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
